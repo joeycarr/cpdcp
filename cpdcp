@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# https://github.com/joeycarr/cpdcp
+#
+# This script is based on bash boilerplate courtesy of
+# http://mikewilliamson.wordpress.com/2012/05/18/bash-boilerplate/
+
+# set the script to exit immediately on error
+set -e
+
+usage(){
+    cat <<'EOT'
+usage: cpdcp dcp_directory device
+
+Formats a destination volume as ext2 with appropriate permissions,
+inode size, and zero reserved space. This is useful for putting DCPs
+onto flash drives. For maximum compatibility the drive should have a
+single partition with a Master Boot Record partition scheme (the
+default for most flash drives).
+
+positional arguments:
+  dcp_directory   This directory should contain your DCP's 
+                  VOLINDEX.xml file.
+  device          This should be a block device, e.g. a USB drive.
+
+EOT
+    exit 0; }
+
+error(){
+    echo "$*" >&2
+    exit 1
+}
+
+# exit if there aren't 2 arguments
+[ $# -ne 2 ] && usage
+
+# if this script needs to be run as root
+# we can check like this:
+[ `id -u` -eq 0 ] || error "You need to call this script using sudo."
+
+# add a trailing slash if none exists
+SRCPATH=`echo "$1" | sed -e 's/\/\?$/\//'` 
+DESTDEV="$2"
+
+[ -d "$SRCPATH" ] || error "The dcp_directory is not a directory: $SRCPATH"
+
+[ -e "$DESTDEV" ] || error "The specified device does not exist: $DESTDEV"
+
+[ -b "$DESTDEV" ] || error \
+    "The specified device is not a block device: $DESTDEV"
+
+MOUNTPT=`mktemp --directory`
+cleanup_before_exit () {
+# this code is run before exit
+    umount $MOUNTPT
+    rmdir $MOUNTPT
+}
+# trap catches the exit signal and runs the specified function
+trap cleanup_before_exit EXIT
+
+mkfs.ext2 -I 128 -m 0 "$DESTDEV"
+mount -t ext2 "$DESTDEV" "$MOUNTPT"
+rsync -av --progress "$SRCPATH" "$MOUNTPT"
+chmod -R 755 "$MOUNTPT"
+chown -R root:root "$MOUNTPT"
+# finally, mount point is unmounted in the trap code on EXIT (see above)
+

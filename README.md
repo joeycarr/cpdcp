@@ -14,4 +14,8 @@ Copy Digital Cinema Packages (DCPs) onto disk for distribution and format the di
                     VOLINDEX.xml file.
     device          This should be a block device, e.g. a USB drive.
 
-Implemented as a bash script, this program is a bespoke workflow aid in the production and distribution of DCPs. I collected a lot of advice on compatibility from teh interwebs and we have screened many short films without failure. The script has been used with Ubuntu Server 14.04.1, running under VirtualBox, hosted on a Mac Pro.
+Implemented as a bash script, this program is a bespoke workflow aid
+in the production and distribution of DCPs. I collected a lot of
+advice on compatibility from teh interwebs and we have screened many
+short films without failure. The script has been used with Ubuntu
+Server 14.04.1, running under VirtualBox, hosted on a Mac Pro.
